@@ -10,7 +10,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 
 | Done | Milestone | Commit |
 | --- | --- | --- |
-| [ ] | M0 Guidelines, tooling, CMake skeleton, CI | |
+| [x] | M0 Guidelines, tooling, CMake skeleton, CI | `f4ce93f` |
 | [ ] | M1 `feat(core)` vocabulary: `Error`, `Result`, `Panic`, `SG_ASSERT`, `OptionalRef`, `Millis`, `Event`, `Command`, JSON both ways | |
 | [ ] | M2 `feat(log)` `EventLog`: append one JSON line per event, flush + fsync, sequence numbers, `Load` with per-line errors and a skipped truncated last line | |
 | [ ] | M3 `feat(core)` `Clock` and `Scheduler`: steady and fake clocks, `After`, `Every`, `Cancel`, order by (due, id) | |
@@ -65,4 +65,13 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 
 ## Next session
 
-Nothing yet: this file is created with the design import, before any engine code exists.
+Phase 1 continues at M1: the core vocabulary in `engine/core`.
+
+Known issues and notes:
+
+- `engine/core/toolchain.cpp` exists only to prove the toolchain and the dependency pins. Once the
+  real modules replace what it checks, fold its tests into theirs and delete it.
+- `ninja` is not installed by default in a fresh container; `apt-get install ninja-build` before the
+  first configure. The CI workflow installs it.
+
+Questions for the user: none open.
