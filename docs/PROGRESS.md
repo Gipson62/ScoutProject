@@ -18,7 +18,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | [x] | M5 `feat(config)` `Config` (toml++) and roster CSV; errors name file and line | `3f854a4` |
 | [x] | M6 `feat(script)` `ScriptHost` on the pocketpy C API, `scoutgame` module, `modes/capture.py` | `c5d82f2` |
 | [x] | M7 `feat(io)` `WebServer` (Beast) and `SimTransport` | `d9ace3d` |
-| [ ] | M8 `feat(web)` `web/sim.html` and `web/dashboard.html` | |
+| [x] | M8 `feat(web)` `web/sim.html` and `web/dashboard.html` | `6f6c84c` |
 | [ ] | M9 `feat(app)` `main.cpp`, `config/dev.toml`, roster; replay on start | |
 
 Out of Phase 1 scope, carried to Phase 3: typed panel actions, team panels, the full domination
@@ -85,10 +85,13 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | Beast is included through `engine/io/beast.hpp`, which silences `-Wdeprecated-declarations` for those includes only | Beast 1.83 uses `std::aligned_storage`, deprecated in C++23, so `-Werror` stops the build on code we do not own; silencing it per-include keeps the warning live for ours |
 | 2026-10-22 | One static page is served for `/`: `sim.html` | Phase 1's landing page is the simulator; the dashboard is a second page beside it |
 | 2026-10-22 | Phase 1 has one `CommandSink`, `OutputSink`, routing LEDs and beeps to the transport and everything else to the browser | The station, audio and panels are Phase 3; the Core does not change when they arrive |
+| 2026-10-22 | A page gets a whole `state` frame rather than reconstructing state from the small frames | A page that has to infer an owner from an announcement shows the wrong thing; the frame is about a kilobyte and the state is the engine's to state |
+| 2026-10-22 | `ToJson` writes sequence numbers and LED versions as signed JSON numbers | A frame built in C++ and the same frame parsed back from a log line then hold the same JSON kinds and compare equal |
+| 2026-10-22 | The dashboard is read-only in Phase 1 | Void, pause, live parameters and the timeline scrubber need every click to be an event in the log, which is Phase 3 |
 
 ## Next session
 
-Phase 1 continues at M8: `web/sim.html` and `web/dashboard.html`.
+Phase 1 continues at M9: `main.cpp`, `config/dev.toml` and the roster.
 
 Known issues and notes:
 
