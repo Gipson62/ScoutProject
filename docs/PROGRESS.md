@@ -16,7 +16,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | [x] | M3 `feat(core)` `Clock` and `Scheduler`: steady and fake clocks, `After`, `Every`, `Cancel`, order by (due, id) | `850375b` |
 | [x] | M4 `feat(core)` `Core`: `OnInput`, `Tick`, `RunUntil`, `CommandRouter` with mute, `GameState`, `Rebuild`; live-feed and rebuild give identical state hashes | `1d887c6`, `4e7b955` |
 | [x] | M5 `feat(config)` `Config` (toml++) and roster CSV; errors name file and line | `3f854a4` |
-| [ ] | M6 `feat(script)` `ScriptHost` on the pocketpy C API, `scoutgame` module, `modes/capture.py` | |
+| [x] | M6 `feat(script)` `ScriptHost` on the pocketpy C API, `scoutgame` module, `modes/capture.py` | `c5d82f2` |
 | [ ] | M7 `feat(io)` `WebServer` (Beast) and `SimTransport` | |
 | [ ] | M8 `feat(web)` `web/sim.html` and `web/dashboard.html` | |
 | [ ] | M9 `feat(app)` `main.cpp`, `config/dev.toml`, roster; replay on start | |
@@ -77,10 +77,15 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | The config accepts both `[points]` and `[nodes]`, and both `[[teams]]` and an inline `teams` array | DESIGN.md's two tabs use different spellings for the same tables, and both examples should load |
 | 2026-10-22 | Points are sorted by id after loading | A TOML table has no order; point order is visible in the state snapshot and in `PushFullState`, so it must not depend on how the file was typed |
 | 2026-10-22 | The roster CSV requires a header row; `uid` or `tag` names the wristband column, `player` and `role` are optional | A chief fills it in a spreadsheet, where a header row is free and column order is not worth depending on |
+| 2026-10-22 | The `scoutgame` module is half Python (a prelude with the decorators, hook lists and dispatchers) and half C | Filtering `@on_tag` by point, team or role is three lines of Python and thirty of C; the C half is only what needs the engine |
+| 2026-10-22 | pocketpy's interpreter is started once per process and wiped with `py_resetvm` for each later `ScriptHost` | `py_initialize` refuses to run again after `py_finalize`, and a wiped VM is what a rebuild wants anyway. `Core::Rebuild` destroys the old mode before creating the new one so two hosts never overlap |
+| 2026-10-22 | Timer callables and their arguments are kept on the Python side, keyed by the engine's timer id | The handle a script stores in `point.data` is then the scheduler's own id, which a replay reproduces exactly |
+| 2026-10-22 | Script data is mirrored into `GameState` as JSON after every hook; a `Team` or `Point` stored in it mirrors as `"team:<name>"` | The snapshot and its hash must see script data, and the mirror only has to tell two states apart — it is never read back into Python |
+| 2026-10-22 | `game.random` is the engine's seeded generator, and pocketpy's own `random` is not exposed | A script must not be able to break replay determinism even by accident, which is what DESIGN.md asks of the script runtime |
 
 ## Next session
 
-Phase 1 continues at M6: `ScriptHost` on the pocketpy C API, and `modes/capture.py`.
+Phase 1 continues at M7: `WebServer` on Beast and `SimTransport`.
 
 Known issues and notes:
 
