@@ -66,3 +66,12 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# IDE and editor folders
+.idea/
+.vscode/
+.vs/
+*.code-workspace
+
+# Session logs written by the engine at run time
+sessions/

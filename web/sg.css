@@ -1,0 +1,318 @@
+/* One stylesheet for every page the engine serves. Dark by default: the game
+   runs through the night and a white screen at 3 a.m. is a mistake. */
+
+:root {
+  --bg: #15171a;
+  --panel: #1e2126;
+  --line: #2e333a;
+  --text: #e8eaed;
+  --dim: #9aa2ad;
+  --ok: #2e9e44;
+  --bad: #e8432e;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+}
+
+h2 {
+  margin: 24px 0 8px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+h3 {
+  margin: 4px 0 2px;
+  font-size: 1rem;
+}
+
+a {
+  color: #7fb2ff;
+}
+
+.hint {
+  margin: 0 0 8px;
+  color: var(--dim);
+}
+
+.link {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.link.up::before {
+  content: "● ";
+  color: var(--ok);
+}
+
+.link.down::before {
+  content: "● ";
+  color: var(--bad);
+}
+
+.banner {
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #2b3a52;
+  transition: max-height 0.2s, padding 0.2s;
+}
+
+.banner.shown {
+  padding: 8px 12px;
+  max-height: 6rem;
+}
+
+/* --- wristbands --- */
+
+.bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.band.chosen {
+  box-shadow: 0 0 0 2px var(--text) inset;
+}
+
+.band small {
+  color: var(--dim);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.swatch {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+}
+
+/* --- capture points --- */
+
+.points {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+}
+
+.dome {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #1b1b1b;
+  box-shadow: 0 0 18px -2px currentColor;
+}
+
+/* The LED patterns, so "pulse" and "blink" read as differently here as they
+   will on a real dome. */
+.dome.pulse {
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.dome.blink {
+  animation: blink 0.6s steps(1, end) infinite;
+}
+
+.dome.ok {
+  outline: 3px solid var(--ok);
+  outline-offset: 3px;
+}
+
+.dome.deny {
+  outline: 3px solid var(--bad);
+  outline-offset: 3px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dome.pulse,
+  .dome.blink {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.id {
+  margin-top: 8px;
+  color: var(--dim);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.owner {
+  margin: 0 0 8px;
+  min-height: 1.45rem;
+  color: var(--dim);
+  font-size: 0.85rem;
+}
+
+.point button {
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #272b31;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.point button:active {
+  background: #323842;
+}
+
+/* --- dashboard --- */
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+th {
+  color: var(--dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.chip {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: baseline;
+}
+
+.feed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border-radius: 10px;
+}
+
+.feed li {
+  display: grid;
+  grid-template-columns: 4rem 3rem 1fr;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}
+
+.feed li:last-child {
+  border-bottom: none;
+}
+
+.feed .seq,
+.feed .when {
+  color: var(--dim);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.feed .said {
+  color: #9ec5ff;
+}
+
+.counts {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  color: var(--dim);
+  font-size: 0.85rem;
+}

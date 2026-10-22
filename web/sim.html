@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sgengine simulator</title>
+    <link rel="stylesheet" href="sg.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Simulator</h1>
+      <p class="hint">
+        The capture points, played by this page: pick a wristband, then tap a point.
+        <a href="dashboard.html">Dashboard</a>
+      </p>
+      <p id="link" class="link down">connecting…</p>
+      <p id="banner" class="banner"></p>
+    </header>
+
+    <section>
+      <h2>Wristbands</h2>
+      <div id="bands" class="bands"></div>
+    </section>
+
+    <section>
+      <h2>Capture points</h2>
+      <div id="points" class="points"></div>
+    </section>
+
+    <script src="sg.js"></script>
+    <script>
+      // Everything on this page is a picture of what the engine said. A tap
+      // sends a frame and changes nothing locally, so a dome always shows the
+      // engine's answer and never this page's guess — which is also how a real
+      // box behaves once its local feedback is corrected.
+      const pointsNode = document.getElementById('points');
+      const bandsNode = document.getElementById('bands');
+      const linkNode = document.getElementById('link');
+      const bannerNode = document.getElementById('banner');
+
+      const cards = new Map();
+      const teamColours = new Map();
+      let selectedUid = null;
+      let bandsBuilt = false;
+
+      const socket = sg.connect({
+        onOpen() {
+          linkNode.className = 'link up';
+          sg.text(linkNode, 'connected');
+        },
+        onClose() {
+          linkNode.className = 'link down';
+          sg.text(linkNode, 'engine not reachable — retrying');
+        },
+        state: applyState,
+        led: onLed,
+        beep: onBeep,
+        announce: onAnnounce,
+      });
+
+      function applyState(frame) {
+        for (const team of frame.teams || []) {
+          teamColours.set(team.name, sg.css(team.rgb));
+        }
+        if (!bandsBuilt) {
+          buildBands(frame.wristbands || []);
+          bandsBuilt = true;
+        }
+        const ids = (frame.points || []).map((point) => point.id).join(',');
+        if (ids !== pointsNode.dataset.ids) {
+          buildPoints(frame.points || []);
+          pointsNode.dataset.ids = ids;
+        }
+        for (const point of frame.points || []) {
+          paint(point.id, point.rgb, point.pattern);
+          setOwner(point.id, point.owner);
+        }
+      }
+
+      function buildBands(wristbands) {
+        // One band per team is what a chief needs to try a game out; the rest of
+        // the roster stays in the file. The last one is deliberately unenrolled,
+        // so the deny path can be tried too.
+        const firstOfTeam = new Map();
+        for (const band of wristbands) {
+          if (!firstOfTeam.has(band.team)) {
+            firstOfTeam.set(band.team, band);
+          }
+        }
+        const offered = Array.from(firstOfTeam.values());
+        offered.push({ uid: 'UNKNOWN', team: '', player: 'not enrolled' });
+
+        bandsNode.replaceChildren();
+        for (const band of offered) {
+          const colour = teamColours.get(band.team) || '#777777';
+          const button = document.createElement('button');
+          button.className = 'band';
+          button.style.borderColor = colour;
+          button.dataset.uid = band.uid;
+
+          const swatch = document.createElement('span');
+          swatch.className = 'swatch';
+          swatch.style.background = colour;
+
+          button.append(swatch);
+          button.append(sg.text(document.createElement('strong'), band.team || 'unknown band'));
+          button.append(sg.text(document.createElement('small'), band.uid));
+          button.onclick = () => select(band.uid);
+          bandsNode.append(button);
+        }
+        if (offered.length > 0) {
+          select(offered[0].uid);
+        }
+      }
+
+      function select(uid) {
+        selectedUid = uid;
+        for (const button of bandsNode.querySelectorAll('.band')) {
+          button.classList.toggle('chosen', button.dataset.uid === uid);
+        }
+      }
+
+      function buildPoints(points) {
+        pointsNode.replaceChildren();
+        cards.clear();
+        for (const point of points) {
+          const card = document.createElement('article');
+          card.className = 'point';
+
+          const dome = document.createElement('div');
+          dome.className = 'dome';
+          const id = sg.text(document.createElement('span'), point.id);
+          id.className = 'id';
+          const owner = document.createElement('p');
+          owner.className = 'owner';
+
+          const tap = sg.text(document.createElement('button'), 'Tap wristband');
+          tap.className = 'tap';
+          tap.onclick = () => {
+            if (selectedUid) {
+              socket.send({ type: 'sim.tap', point: point.id, uid: selectedUid });
+            }
+          };
+
+          const press = sg.text(document.createElement('button'), 'Press button');
+          press.className = 'press';
+          press.onclick = () => socket.send({ type: 'sim.button', point: point.id });
+
+          card.append(dome, id, sg.text(document.createElement('h3'), point.name), owner, tap,
+                      press);
+          pointsNode.append(card);
+          cards.set(point.id, { dome, owner });
+        }
+      }
+
+      function paint(id, rgb, pattern) {
+        const card = cards.get(id);
+        if (!card) {
+          return;
+        }
+        card.dome.style.background = pattern === 'off' ? '#1b1b1b' : sg.css(rgb);
+        // The pattern drives a CSS animation, so "pulse" and "blink" look as
+        // different here as they will on a real dome.
+        card.dome.className = 'dome ' + pattern;
+      }
+
+      function setOwner(id, owner) {
+        const card = cards.get(id);
+        if (card) {
+          sg.text(card.owner, owner ? 'held by ' + owner : 'nobody holds it');
+        }
+      }
+
+      function onLed(frame) {
+        paint(frame.point, frame.rgb, frame.pattern);
+      }
+
+      function onBeep(frame) {
+        // No sound: the dome flashes instead, in the two meanings the buzzer has.
+        const card = cards.get(frame.point);
+        if (!card) {
+          return;
+        }
+        const mark = frame.kind === 'deny' ? 'deny' : 'ok';
+        card.dome.classList.add(mark);
+        setTimeout(() => card.dome.classList.remove(mark), 400);
+      }
+
+      function onAnnounce(frame) {
+        sg.text(bannerNode, frame.text || '');
+        bannerNode.classList.add('shown');
+        setTimeout(() => bannerNode.classList.remove('shown'), 6000);
+      }
+    </script>
+  </body>
+</html>

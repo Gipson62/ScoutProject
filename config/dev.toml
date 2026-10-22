@@ -1,0 +1,50 @@
+# config/dev.toml: the local prototype, with no hardware.
+#
+# Six teams and the eight capture points of the camp game, so the simulator
+# plays the real thing. The camp's own file (config/camp2027.toml, Phase 3) adds
+# the map and the domination parameters on top of this.
+
+mode   = "capture"
+title  = "Camp 2027, dev session"
+seed   = 2027
+roster = "roster.csv"
+
+[[teams]]
+name = "Wolves"
+colour = "#e8432e"
+
+[[teams]]
+name = "Foxes"
+colour = "#f28c28"
+
+[[teams]]
+name = "Owls"
+colour = "#8e44ad"
+
+[[teams]]
+name = "Bears"
+colour = "#6d4c41"
+
+[[teams]]
+name = "Stags"
+colour = "#2e9e44"
+
+[[teams]]
+name = "Hawks"
+colour = "#2b6cd4"
+
+# Live-editable from the dashboard, once Phase 3 adds the controls.
+[params]
+capture_minutes = 5    # uncontested time needed to take a capture point
+income_per_min  = 10   # not used by modes/capture.py; here for the next mode
+
+# The eight points in the forest, with their place on the HQ LED map.
+[points]
+P1 = { name = "Old oak",      map_led = 0 }
+P2 = { name = "Fallen trunk", map_led = 1 }
+P3 = { name = "Stream",       map_led = 2 }
+P4 = { name = "Clearing",     map_led = 3 }
+P5 = { name = "Big rock",     map_led = 4 }
+P6 = { name = "Old fence",    map_led = 5 }
+P7 = { name = "Holly bush",   map_led = 6 }
+P8 = { name = "Hilltop",      map_led = 7 }

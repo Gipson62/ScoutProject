@@ -1,0 +1,19 @@
+# config/roster.csv: which wristband belongs to whom.
+#
+# At camp a chief enrolls a band by tapping it on the HQ reader and the
+# dashboard fills the uid in. These are made up, two per team, so the simulator
+# has one band to offer for each.
+uid,player,team,role
+04A1B2C3,Lucas,Wolves,player
+04A2B3C4,Emma,Wolves,player
+04B1C2D3,Noah,Foxes,player
+04B2C3D4,Chloe,Foxes,player
+04C1D2E3,Hugo,Owls,player
+04C2D3E4,Lea,Owls,player
+04D1E2F3,Jules,Bears,player
+04D2E3F4,Alice,Bears,player
+04E1F2A3,Tom,Stags,player
+04E2F3A4,Zoe,Stags,player
+04F1A2B3,Gabriel,Hawks,player
+04F2A3B4,Manon,Hawks,player
+0490CHEF,Chief,Wolves,chief
