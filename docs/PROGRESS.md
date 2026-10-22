@@ -15,7 +15,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | [x] | M2 `feat(log)` `EventLog`: append one JSON line per event, flush + fsync, sequence numbers, `Load` with per-line errors and a skipped truncated last line | `6473432` |
 | [x] | M3 `feat(core)` `Clock` and `Scheduler`: steady and fake clocks, `After`, `Every`, `Cancel`, order by (due, id) | `850375b` |
 | [x] | M4 `feat(core)` `Core`: `OnInput`, `Tick`, `RunUntil`, `CommandRouter` with mute, `GameState`, `Rebuild`; live-feed and rebuild give identical state hashes | `1d887c6`, `4e7b955` |
-| [ ] | M5 `feat(config)` `Config` (toml++) and roster CSV; errors name file and line | |
+| [x] | M5 `feat(config)` `Config` (toml++) and roster CSV; errors name file and line | `3f854a4` |
 | [ ] | M6 `feat(script)` `ScriptHost` on the pocketpy C API, `scoutgame` module, `modes/capture.py` | |
 | [ ] | M7 `feat(io)` `WebServer` (Beast) and `SimTransport` | |
 | [ ] | M8 `feat(web)` `web/sim.html` and `web/dashboard.html` | |
@@ -74,10 +74,13 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | `Scheduler::Clear` restarts timer ids from 1 | A mode keeps its handles in `point.data`, so an id is part of the state; a rebuild that numbered timers differently reached a different state hash than the live run |
 | 2026-10-22 | The engine assigns `LedState::version`, not the mode | A node reports the version it is showing in its heartbeat, so a mismatch is what triggers a resend; a script cannot be trusted to count |
 | 2026-10-22 | `GameState::Hash` includes the random generator's position | Two states that agree on everything else but have drawn a different number of values diverge on the next roll, so they are not the same state |
+| 2026-10-22 | The config accepts both `[points]` and `[nodes]`, and both `[[teams]]` and an inline `teams` array | DESIGN.md's two tabs use different spellings for the same tables, and both examples should load |
+| 2026-10-22 | Points are sorted by id after loading | A TOML table has no order; point order is visible in the state snapshot and in `PushFullState`, so it must not depend on how the file was typed |
+| 2026-10-22 | The roster CSV requires a header row; `uid` or `tag` names the wristband column, `player` and `role` are optional | A chief fills it in a spreadsheet, where a header row is free and column order is not worth depending on |
 
 ## Next session
 
-Phase 1 continues at M5: `Config` from TOML and the roster CSV.
+Phase 1 continues at M6: `ScriptHost` on the pocketpy C API, and `modes/capture.py`.
 
 Known issues and notes:
 
