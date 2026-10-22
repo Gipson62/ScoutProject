@@ -1,4 +1,5 @@
 add_executable(sg_tests core/error_test.cpp
+                       core/event_test.cpp
                        core/optional_ref_test.cpp
                        core/panic_test.cpp
                        toolchain_test.cpp)

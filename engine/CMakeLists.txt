@@ -3,6 +3,7 @@
 add_library(
   sg_engine STATIC
   core/error.cpp
+  core/event.cpp
   core/json_impl.cpp
   core/panic.cpp
   core/toolchain.cpp)
