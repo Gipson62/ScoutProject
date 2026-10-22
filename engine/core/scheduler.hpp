@@ -66,8 +66,9 @@ class Scheduler
   // live run did.
   [[nodiscard]] auto PopDue(Millis t) -> std::optional<Timer>;
 
-  // Forgets every timer: used by Rebuild, which starts the game again from the
-  // log and must not inherit the timers of the run it replaces.
+  // Forgets every timer and restarts the ids, so a rebuild hands out the same
+  // ids the live run did: a mode keeps its handles in point.data, which is part
+  // of the state a replay must reproduce exactly.
   auto Clear() -> void;
 
  private:

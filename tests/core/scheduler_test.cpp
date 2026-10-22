@@ -156,18 +156,21 @@ TEST(Scheduler, ARepeatCancelledWhileFiringDoesNotComeBack)
   EXPECT_TRUE(DrainUntil(scheduler, 10'000).empty());
 }
 
-TEST(Scheduler, ClearForgetsEverythingAndKeepsIdsUnique)
+TEST(Scheduler, ClearForgetsEverythingAndRestartsTheIds)
 {
   sg::Scheduler scheduler;
-  const sg::TimerId before = scheduler.After(100);
+  const sg::TimerId first = scheduler.After(100);
+  static_cast<void>(scheduler.After(200));
   scheduler.Clear();
 
   EXPECT_TRUE(scheduler.Empty());
-  EXPECT_FALSE(scheduler.IsPending(before));
+  EXPECT_FALSE(scheduler.IsPending(first));
 
-  // A handle the script still holds must not start naming a new timer.
-  const sg::TimerId after = scheduler.After(100);
-  EXPECT_NE(after, before);
+  // A replay must hand out the same ids the live run did: a mode stores its
+  // handles in point.data, so an id is part of the state the rebuild has to
+  // reproduce. Nothing can be holding a stale handle, because the only caller
+  // is Rebuild, which throws the mode and the state away too.
+  EXPECT_EQ(scheduler.After(100), first);
 }
 
 TEST(FakeClock, StartsWhereItIsToldAndMovesForwardOnly)

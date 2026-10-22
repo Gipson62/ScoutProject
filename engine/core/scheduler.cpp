@@ -79,8 +79,12 @@ auto Scheduler::Clear() -> void
 {
   m_timers.clear();
   m_queue.clear();
-  // Ids are not reused: a handle the script still holds must not start naming
-  // somebody else's timer after a rebuild.
+  // Ids restart from 1, because a replay has to hand out the same ids the live
+  // run did: a mode stores its handles in point.data and team.data, so the ids
+  // are part of the state the rebuild must reproduce. Nothing can be holding an
+  // old handle, since the only caller is Rebuild, which also throws the mode
+  // and the state away.
+  m_next_id = 1;
 }
 
 }  // namespace sg
