@@ -26,18 +26,27 @@ class Clock
   [[nodiscard]] virtual auto Now() const -> Millis = 0;
 };
 
-// What the engine runs on: std::chrono::steady_clock, with its zero at
-// construction. Not system_clock, which an NTP step or a time-zone change can
-// move backwards in the middle of a game.
+// What the engine runs on: std::chrono::steady_clock, not system_clock, which
+// an NTP step or a time-zone change can move backwards in the middle of a game.
 class SteadyClock final : public Clock
 {
  public:
-  SteadyClock() : m_started(std::chrono::steady_clock::now()) {}
+  // `resume_at` is where game time starts. A fresh session passes 0; a restart
+  // passes the time of the last logged event, so the game continues its own
+  // timeline instead of jumping back to zero — which would make every new event
+  // look late and force a rebuild on each one. The time the engine was down is
+  // not credited: a five-minute countdown two minutes in has three minutes left
+  // from the restart.
+  explicit SteadyClock(Millis resume_at = 0)
+      : m_started(std::chrono::steady_clock::now()), m_resume_at(resume_at)
+  {
+  }
 
   [[nodiscard]] auto Now() const -> Millis override;
 
  private:
   std::chrono::steady_clock::time_point m_started;
+  Millis m_resume_at = 0;
 };
 
 // What the tests run on, and what a fast-forward replay would use.

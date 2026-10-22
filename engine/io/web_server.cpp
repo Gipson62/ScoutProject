@@ -86,12 +86,24 @@ class WebServer::WsSession : public std::enable_shared_from_this<WsSession>
                         {
                           return;
                         }
+                        // Only now can this session be written to, so this is
+                        // also when the engine is told a page has opened: a
+                        // welcome frame sent before the handshake finishes
+                        // would be thrown away.
+                        self->m_ready = true;
+                        self->m_server.Welcome();
                         self->Read();
                       });
   }
 
   auto Send(std::shared_ptr<const std::string> text) -> void
   {
+    if (!m_ready)
+    {
+      // Still handshaking. Dropping is right rather than queueing: the welcome
+      // frame that follows the handshake carries the whole state anyway.
+      return;
+    }
     m_queue.push_back(std::move(text));
     if (m_queue.size() == 1)
     {
@@ -101,7 +113,7 @@ class WebServer::WsSession : public std::enable_shared_from_this<WsSession>
 
   [[nodiscard]] auto Open() const -> bool
   {
-    return m_ws.is_open();
+    return m_ready && m_ws.is_open();
   }
 
  private:
@@ -160,6 +172,7 @@ class WebServer::WsSession : public std::enable_shared_from_this<WsSession>
   // Frames are shared because one Broadcast hands the same text to every
   // client, and each client writes it on its own schedule.
   std::deque<std::shared_ptr<const std::string>> m_queue;
+  bool m_ready = false;
 };
 
 // One HTTP request: either a WebSocket upgrade, which becomes a WsSession, or a
@@ -384,6 +397,10 @@ auto WebServer::Join(const std::shared_ptr<WsSession>& session) -> void
                   return client.expired();
                 });
   m_clients.push_back(session);
+}
+
+auto WebServer::Welcome() -> void
+{
   if (m_on_connect)
   {
     m_on_connect();

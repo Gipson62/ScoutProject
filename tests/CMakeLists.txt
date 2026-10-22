@@ -9,6 +9,7 @@ add_executable(sg_tests config/config_test.cpp
                        io/state_frame_test.cpp
                        io/web_server_test.cpp
                        log/event_log_test.cpp
+                       options_test.cpp
                        script/script_host_test.cpp
                        toolchain_test.cpp)
 

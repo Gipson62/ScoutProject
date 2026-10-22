@@ -68,6 +68,9 @@ class WebServer
   auto Accept() -> void;
   auto Dispatch(const boost::json::object& frame) -> void;
   auto Join(const std::shared_ptr<WsSession>& session) -> void;
+  // Called by a session once its handshake is done, which is the first moment
+  // it can be written to.
+  auto Welcome() -> void;
   [[nodiscard]] auto Resolve(std::string_view target) const
       -> std::filesystem::path;
 

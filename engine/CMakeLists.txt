@@ -21,6 +21,7 @@ add_library(
   io/state_frame.cpp
   io/web_server.cpp
   log/event_log.cpp
+  options.cpp
   script/script_host.cpp)
 
 target_include_directories(sg_engine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")
@@ -29,3 +30,8 @@ target_link_libraries(
   sg_engine
   PUBLIC sg_options Boost::headers tomlplusplus::tomlplusplus pocketpy
   PRIVATE Threads::Threads)
+
+# The engine binary: everything above, plus the wiring.
+add_executable(sgengine main.cpp)
+
+target_link_libraries(sgengine PRIVATE sg_engine sg_options)

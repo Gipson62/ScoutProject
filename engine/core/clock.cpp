@@ -11,7 +11,8 @@ namespace sg
 auto SteadyClock::Now() const -> Millis
 {
   const auto elapsed = std::chrono::steady_clock::now() - m_started;
-  return std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+  return m_resume_at +
+         std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
 }
 
 auto FakeClock::Advance(Millis by) -> void

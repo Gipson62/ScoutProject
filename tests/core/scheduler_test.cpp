@@ -197,4 +197,14 @@ TEST(SteadyClock, StartsNearZeroAndNeverGoesBackwards)
   EXPECT_GE(clock.Now(), first);
 }
 
+TEST(SteadyClock, ResumesWhereASessionStopped)
+{
+  // What a restart does: game time continues the logged timeline instead of
+  // jumping back to zero, which would make every new event look late.
+  const sg::SteadyClock clock{3'600'000};
+  const sg::Millis first = clock.Now();
+  EXPECT_GE(first, 3'600'000);
+  EXPECT_LT(first, 3'601'000);
+}
+
 }  // namespace
