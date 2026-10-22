@@ -19,7 +19,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | [x] | M6 `feat(script)` `ScriptHost` on the pocketpy C API, `scoutgame` module, `modes/capture.py` | `c5d82f2` |
 | [x] | M7 `feat(io)` `WebServer` (Beast) and `SimTransport` | `d9ace3d` |
 | [x] | M8 `feat(web)` `web/sim.html` and `web/dashboard.html` | `6f6c84c` |
-| [ ] | M9 `feat(app)` `main.cpp`, `config/dev.toml`, roster; replay on start | |
+| [x] | M9 `feat(app)` `main.cpp`, `config/dev.toml`, roster; replay on start | `75d317a` |
 
 Out of Phase 1 scope, carried to Phase 3: typed panel actions, team panels, the full domination
 mode, `Void` and undo, audio, UPS, health monitoring.
@@ -88,16 +88,45 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | A page gets a whole `state` frame rather than reconstructing state from the small frames | A page that has to infer an owner from an announcement shows the wrong thing; the frame is about a kilobyte and the state is the engine's to state |
 | 2026-10-22 | `ToJson` writes sequence numbers and LED versions as signed JSON numbers | A frame built in C++ and the same frame parsed back from a log line then hold the same JSON kinds and compare equal |
 | 2026-10-22 | The dashboard is read-only in Phase 1 | Void, pause, live parameters and the timeline scrubber need every click to be an event in the log, which is Phase 3 |
+| 2026-10-22 | On restart, game time resumes at the last logged event's time, and the time the engine was down is not credited | Game time is ms since the session started; beginning again at zero would make every new event look late and force a rebuild on each one. A five-minute countdown two minutes in has three minutes left from the restart |
+| 2026-10-22 | A page is told it connected only once its WebSocket handshake has finished | The welcome frame was otherwise written to a stream that could not take it, and the page sat empty until the next event |
+| 2026-10-22 | The command line is parsed by hand in `engine/options.cpp` | Five options do not justify a dependency, and the parser is unit-tested |
+| 2026-10-22 | A session log that cannot be written stops the engine | Every later replay would be wrong, and the engine's whole promise is that the log is the truth |
 
 ## Next session
 
-Phase 1 continues at M9: `main.cpp`, `config/dev.toml` and the roster.
+Phase 1 is complete: the engine runs, replays its log and is driven from the browser. Phase 2
+(firmware, `SerialTransport`, cross-compilation to the Zero) is deliberately untouched.
 
-Known issues and notes:
+Start here:
 
-- `engine/core/toolchain.cpp` exists only to prove the toolchain and the dependency pins. Once the
-  real modules replace what it checks, fold its tests into theirs and delete it.
-- `ninja` is not installed by default in a fresh container; `apt-get install ninja-build` before the
-  first configure. The CI workflow installs it.
+1. Read `CLAUDE.md`, then this file, then the "Code architecture" section of `docs/DESIGN.md`.
+2. `apt-get install -y g++-14 clang-19 clang-format-19 clang-tidy-19 ninja-build libboost-dev
+   libboost-json-dev libboost-system-dev` — a fresh container has none of them.
+3. `cmake --preset clang-debug && cmake --build --preset clang-debug && ctest --preset clang-debug`
 
-Questions for the user: none open.
+Known issues and loose ends:
+
+- `engine/core/toolchain.cpp` exists only to prove the compilers and the dependency pins. Its three
+  checks are now covered by the real modules' own tests, so it can be deleted whenever a commit has
+  a reason to touch that area.
+- clang-tidy has a configuration (`.clang-tidy`) but nothing runs it: CI builds, tests and checks
+  formatting only. Adding a clang-tidy job needs `compile_commands.json`, which the presets already
+  produce, and will probably turn up findings in the pocketpy boundary code.
+- `Void` is logged and honoured by `Rebuild`, but nothing produces one yet: the dashboard is
+  read-only until Phase 3.
+- `modes/capture.py` needs `capture_minutes` in `[params]`; a config without it fails the hook with
+  an AttributeError, visible in the engine's error list but not before the game starts. A mode
+  parameter check at load time would be worth having.
+- The simulator shows beeps as a flash of the dome rather than playing a sound.
+- The 100 ms tick broadcasts a state frame only when the state hash changed, so an idle game sends
+  nothing; with the domination mode's per-minute income it will send one frame a minute, which is
+  fine, but a mode that changes state every tick would make it chatty.
+
+Questions for the user:
+
+1. `config/dev.toml` keeps `capture_minutes = 5`, which makes a manual run slow to watch. Would a
+   second file (`config/dev-fast.toml`, 10 seconds) be useful, or is editing the one file fine?
+2. Phase 2 needs the real `firmware/` tree and a cross-compilation toolchain file for the Zero. Is
+   the hardware (XIAO kits, RC522 readers) already to hand, or should Phase 2 start with the
+   protocol header and its round-trip test alone?
