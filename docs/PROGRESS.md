@@ -11,7 +11,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | Done | Milestone | Commit |
 | --- | --- | --- |
 | [x] | M0 Guidelines, tooling, CMake skeleton, CI | `f4ce93f` |
-| [ ] | M1 `feat(core)` vocabulary: `Error`, `Result`, `Panic`, `SG_ASSERT`, `OptionalRef`, `Millis`, `Event`, `Command`, JSON both ways | |
+| [x] | M1 `feat(core)` vocabulary: `Error`, `Result`, `Panic`, `SG_ASSERT`, `OptionalRef`, `Millis`, `Event`, `Command`, JSON both ways | `73c3a83`, `06a6603`, `6e98ec0` |
 | [ ] | M2 `feat(log)` `EventLog`: append one JSON line per event, flush + fsync, sequence numbers, `Load` with per-line errors and a skipped truncated last line | |
 | [ ] | M3 `feat(core)` `Clock` and `Scheduler`: steady and fake clocks, `After`, `Every`, `Cancel`, order by (due, id) | |
 | [ ] | M4 `feat(core)` `Core`: `OnInput`, `Tick`, `RunUntil`, `CommandRouter` with mute, `GameState`, `Rebuild`; live-feed and rebuild give identical state hashes | |
@@ -62,10 +62,14 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | C++23, not the C++20 the design document's repository layout mentions | `std::expected` is the error-as-value vocabulary of the whole engine, and it is C++23 |
 | 2026-10-22 | pocketpy through its **C API** (`pocketpy.h`), not the pybind11-compatible layer the design document sketches | pybind11's design relies on C++ exceptions, and the engine is built with `-fno-exceptions` |
 | 2026-10-22 | Naming is PascalCase for functions and methods, `m_`/`s_`/`k` prefixes, which the design document's snippets do not follow | One naming scheme across the repository, enforced by `readability-identifier-naming` |
+| 2026-10-22 | One `sg::ErrorCode` enum with a block of a hundred per module, instead of one enum per module | `Error` holds a single `code` field, as the plan specifies, so a per-module enum type would make `Error` and therefore `Result` generic in it; a block per module keeps both concrete and still says which module produced a code |
+| 2026-10-22 | `Beep::kind` is a `BeepKind` enumerator, not the design's bare `std::uint8_t`, and serialises as `"ok"` / `"deny"` / `"alarm"` | The simulator and the dashboard would otherwise need a table of magic numbers; the wire form stays readable in a log line |
+| 2026-10-22 | `MapLed::index` is `std::int32_t`, not the design's `int` | The explicit-sized-integer rule; `int` is not one of its exceptions |
+| 2026-10-22 | The session log line is `{"seq","t","kind",…}`, discriminated by `"kind"`; a WebSocket frame is discriminated by `"type"` | DESIGN.md fixes the frame shapes but not the log shape; two different key names keep a log line and a frame impossible to confuse |
 
 ## Next session
 
-Phase 1 continues at M1: the core vocabulary in `engine/core`.
+Phase 1 continues at M2: `EventLog` in `engine/log`.
 
 Known issues and notes:
 
