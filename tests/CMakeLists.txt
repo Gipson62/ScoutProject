@@ -7,9 +7,14 @@ add_executable(sg_tests config/config_test.cpp
                        core/panic_test.cpp
                        core/scheduler_test.cpp
                        log/event_log_test.cpp
+                       script/script_host_test.cpp
                        toolchain_test.cpp)
 
 target_link_libraries(sg_tests PRIVATE sg_engine sg_options GTest::gtest_main)
+
+# The script tests load the real modes/capture.py, so they need to find it
+# wherever the build directory happens to be.
+target_compile_definitions(sg_tests PRIVATE SG_REPO_ROOT="${CMAKE_SOURCE_DIR}")
 
 include(GoogleTest)
 gtest_discover_tests(sg_tests)

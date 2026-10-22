@@ -16,7 +16,8 @@ add_library(
   core/random.cpp
   core/scheduler.cpp
   core/toolchain.cpp
-  log/event_log.cpp)
+  log/event_log.cpp
+  script/script_host.cpp)
 
 target_include_directories(sg_engine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")
 

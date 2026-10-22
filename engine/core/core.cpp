@@ -147,6 +147,10 @@ auto Core::Rebuild() -> void
 {
   m_router.Mute();
 
+  // Destroyed before the new one is asked for: a ScriptHost owns pocketpy's
+  // interpreter, which is process-wide, so two of them cannot overlap even for
+  // the length of an assignment.
+  m_mode.reset();
   m_mode = m_factory();
   SG_ASSERT(m_mode != nullptr, "the mode factory returned nothing");
   m_state = GameState::Initial(m_setup);
