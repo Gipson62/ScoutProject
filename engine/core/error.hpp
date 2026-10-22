@@ -22,6 +22,11 @@ enum class ErrorCode : std::uint16_t
   kWrongType = 101,
   kUnknownKind = 102,
   kBadValue = 103,
+
+  // log: the session file
+  kLogOpenFailed = 200,
+  kLogWriteFailed = 201,
+  kLogCorruptLine = 202,
 };
 
 struct Error

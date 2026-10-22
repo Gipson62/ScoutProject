@@ -6,7 +6,8 @@ add_library(
   core/event.cpp
   core/json_impl.cpp
   core/panic.cpp
-  core/toolchain.cpp)
+  core/toolchain.cpp
+  log/event_log.cpp)
 
 target_include_directories(sg_engine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/..")
 
