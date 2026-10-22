@@ -1,5 +1,6 @@
 add_executable(sg_tests core/error_test.cpp
                        core/event_test.cpp
+                       core/game_state_test.cpp
                        core/optional_ref_test.cpp
                        core/panic_test.cpp
                        core/scheduler_test.cpp

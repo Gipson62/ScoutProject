@@ -3,10 +3,13 @@
 add_library(
   sg_engine STATIC
   core/clock.cpp
+  core/command_router.cpp
   core/error.cpp
   core/event.cpp
+  core/game_state.cpp
   core/json_impl.cpp
   core/panic.cpp
+  core/random.cpp
   core/scheduler.cpp
   core/toolchain.cpp
   log/event_log.cpp)
