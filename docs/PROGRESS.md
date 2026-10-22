@@ -12,7 +12,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | --- | --- | --- |
 | [x] | M0 Guidelines, tooling, CMake skeleton, CI | `f4ce93f` |
 | [x] | M1 `feat(core)` vocabulary: `Error`, `Result`, `Panic`, `SG_ASSERT`, `OptionalRef`, `Millis`, `Event`, `Command`, JSON both ways | `73c3a83`, `06a6603`, `6e98ec0` |
-| [ ] | M2 `feat(log)` `EventLog`: append one JSON line per event, flush + fsync, sequence numbers, `Load` with per-line errors and a skipped truncated last line | |
+| [x] | M2 `feat(log)` `EventLog`: append one JSON line per event, flush + fsync, sequence numbers, `Load` with per-line errors and a skipped truncated last line | `6473432` |
 | [ ] | M3 `feat(core)` `Clock` and `Scheduler`: steady and fake clocks, `After`, `Every`, `Cancel`, order by (due, id) | |
 | [ ] | M4 `feat(core)` `Core`: `OnInput`, `Tick`, `RunUntil`, `CommandRouter` with mute, `GameState`, `Rebuild`; live-feed and rebuild give identical state hashes | |
 | [ ] | M5 `feat(config)` `Config` (toml++) and roster CSV; errors name file and line | |
@@ -66,10 +66,12 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | `Beep::kind` is a `BeepKind` enumerator, not the design's bare `std::uint8_t`, and serialises as `"ok"` / `"deny"` / `"alarm"` | The simulator and the dashboard would otherwise need a table of magic numbers; the wire form stays readable in a log line |
 | 2026-10-22 | `MapLed::index` is `std::int32_t`, not the design's `int` | The explicit-sized-integer rule; `int` is not one of its exceptions |
 | 2026-10-22 | The session log line is `{"seq","t","kind",…}`, discriminated by `"kind"`; a WebSocket frame is discriminated by `"type"` | DESIGN.md fixes the frame shapes but not the log shape; two different key names keep a log line and a frame impossible to confuse |
+| 2026-10-22 | `EventLog::Open` reads the file back and continues its numbering, rather than starting a new file per run | "Restart the engine and the game resumes" is the whole point of the log; a second file would split one session in two |
+| 2026-10-22 | A corrupt line anywhere but at the end fails the load; only an unterminated last line is skipped, with a warning | A line the parser cannot read is an event that happened and would silently vanish from the score. An unterminated last line is different: it was never acknowledged, so nothing downstream ever saw it |
 
 ## Next session
 
-Phase 1 continues at M2: `EventLog` in `engine/log`.
+Phase 1 continues at M3: `Clock` and `Scheduler` in `engine/core`.
 
 Known issues and notes:
 
