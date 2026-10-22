@@ -9,8 +9,8 @@ indent_style = space
 indent_size = 4
 
 [*.{hpp,cpp}]
-indent_size = 4
-max_line_length = 100
+indent_size = 2
+max_line_length = 80
 
 [*.{py,html,css,js,json,toml,yml,yaml}]
 indent_size = 2
