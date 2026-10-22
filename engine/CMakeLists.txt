@@ -18,6 +18,7 @@ add_library(
   core/toolchain.cpp
   io/output_sink.cpp
   io/sim_transport.cpp
+  io/state_frame.cpp
   io/web_server.cpp
   log/event_log.cpp
   script/script_host.cpp)

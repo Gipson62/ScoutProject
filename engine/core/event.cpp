@@ -208,7 +208,9 @@ auto BeepKindFromName(std::string_view name) -> Result<BeepKind>
 auto ToJson(const Event& event) -> boost::json::object
 {
   boost::json::object out;
-  out["seq"] = event.seq;
+  // Written as signed numbers so a frame built here and a frame parsed back
+  // from a log line hold the same JSON kinds and compare equal.
+  out["seq"] = static_cast<std::int64_t>(event.seq);
   out["t"] = event.t;
   std::visit(
       [&out](const auto& data)
@@ -242,7 +244,7 @@ auto ToJson(const Event& event) -> boost::json::object
         {
           static_assert(std::is_same_v<T, Void>);
           out["kind"] = "void";
-          out["target"] = data.target;
+          out["target"] = static_cast<std::int64_t>(data.target);
         }
       },
       event.data);
@@ -373,7 +375,7 @@ auto ToJson(const Command& command) -> boost::json::object
           out["point"] = data.point;
           out["rgb"] = RgbToJson(data.rgb);
           out["pattern"] = PatternName(data.pattern);
-          out["v"] = data.version;
+          out["v"] = static_cast<std::int64_t>(data.version);
         }
         else if constexpr (std::is_same_v<T, Beep>)
         {

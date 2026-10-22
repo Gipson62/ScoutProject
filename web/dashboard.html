@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sgengine dashboard</title>
+    <link rel="stylesheet" href="sg.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Dashboard</h1>
+      <p class="hint">
+        Who holds what, and every event as it is logged.
+        <a href="sim.html">Simulator</a>
+      </p>
+      <p id="link" class="link down">connecting…</p>
+      <p class="counts">
+        <span>game time <strong id="now">0:00</strong></span>
+        <span>events <strong id="count">0</strong></span>
+      </p>
+    </header>
+
+    <div class="columns">
+      <section>
+        <h2>Capture points</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Point</th>
+              <th>Owner</th>
+              <th>Light</th>
+            </tr>
+          </thead>
+          <tbody id="points"></tbody>
+        </table>
+
+        <h2>Teams</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Points held</th>
+              <th>Resources</th>
+            </tr>
+          </thead>
+          <tbody id="teams"></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Event feed</h2>
+        <ul id="feed" class="feed"></ul>
+      </section>
+    </div>
+
+    <script src="sg.js"></script>
+    <script>
+      // Read-only on purpose: Phase 1 shows the game, and the Game Master's
+      // controls — void, pause, live parameters, the timeline scrubber — arrive
+      // with Phase 3, once every click is an event in the log.
+      const pointsNode = document.getElementById('points');
+      const teamsNode = document.getElementById('teams');
+      const feedNode = document.getElementById('feed');
+      const linkNode = document.getElementById('link');
+      const nowNode = document.getElementById('now');
+      const countNode = document.getElementById('count');
+
+      const kFeedLimit = 200;
+      let events = 0;
+
+      sg.connect({
+        onOpen() {
+          linkNode.className = 'link up';
+          sg.text(linkNode, 'connected');
+        },
+        onClose() {
+          linkNode.className = 'link down';
+          sg.text(linkNode, 'engine not reachable — retrying');
+        },
+        state: applyState,
+        event: onEvent,
+        announce: onAnnounce,
+        sound: (frame) => note('sound', frame.file || ''),
+        map: (frame) => note('map', 'pixel ' + frame.index),
+      });
+
+      function applyState(frame) {
+        sg.text(nowNode, sg.clock(frame.now || 0));
+
+        const held = new Map();
+        pointsNode.replaceChildren();
+        for (const point of frame.points || []) {
+          if (point.owner) {
+            held.set(point.owner, (held.get(point.owner) || 0) + 1);
+          }
+          const row = document.createElement('tr');
+
+          const name = document.createElement('td');
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.style.background = point.pattern === 'off' ? '#444444' : sg.css(point.rgb);
+          name.append(chip);
+          name.append(document.createTextNode(point.id + ' · ' + point.name));
+
+          row.append(name);
+          row.append(sg.text(document.createElement('td'), point.owner || '—'));
+          row.append(sg.text(document.createElement('td'), point.pattern + ' v' + point.v));
+          pointsNode.append(row);
+        }
+
+        teamsNode.replaceChildren();
+        for (const team of frame.teams || []) {
+          const row = document.createElement('tr');
+
+          const name = document.createElement('td');
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.style.background = sg.css(team.rgb);
+          name.append(chip);
+          name.append(document.createTextNode(team.name));
+
+          const resources = Object.entries(team.res || {})
+            .map(([what, howMany]) => howMany + ' ' + what)
+            .join(', ');
+
+          row.append(name);
+          row.append(sg.text(document.createElement('td'), held.get(team.name) || 0));
+          row.append(sg.text(document.createElement('td'), resources || '—'));
+          teamsNode.append(row);
+        }
+      }
+
+      function onEvent(frame) {
+        events += 1;
+        sg.text(countNode, events);
+        add(frame.seq, frame.t, describe(frame));
+      }
+
+      function describe(frame) {
+        if (frame.kind === 'tap') {
+          return 'tap on ' + frame.point + ' with ' + frame.uid;
+        }
+        if (frame.kind === 'button') {
+          return 'button on ' + frame.point;
+        }
+        if (frame.kind === 'action') {
+          return frame.team + ': ' + frame.name;
+        }
+        if (frame.kind === 'admin') {
+          return 'admin: ' + frame.name;
+        }
+        if (frame.kind === 'void') {
+          return 'voided event ' + frame.target;
+        }
+        return frame.kind || '?';
+      }
+
+      function onAnnounce(frame) {
+        const line = add('', null, frame.text || '');
+        line.querySelector('.what').classList.add('said');
+      }
+
+      function note(what, detail) {
+        add('', null, what + ' ' + detail);
+      }
+
+      // Newest first, and the list is capped: a 24-hour game logs thousands of
+      // events and a phone should not have to hold all of them.
+      function add(seq, when, text) {
+        const line = document.createElement('li');
+        const seqNode = sg.text(document.createElement('span'), seq === '' ? '' : '#' + seq);
+        seqNode.className = 'seq';
+        const whenNode = sg.text(document.createElement('span'),
+                                 when === null || when === undefined ? '' : sg.clock(when));
+        whenNode.className = 'when';
+        const whatNode = sg.text(document.createElement('span'), text);
+        whatNode.className = 'what';
+        line.append(seqNode, whenNode, whatNode);
+
+        feedNode.prepend(line);
+        while (feedNode.childElementCount > kFeedLimit) {
+          feedNode.lastElementChild.remove();
+        }
+        return line;
+      }
+    </script>
+  </body>
+</html>

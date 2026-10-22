@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "engine/core/error.hpp"
 #include "engine/core/mode.hpp"
@@ -38,6 +39,10 @@ class CsvRoster final : public Roster
   {
     return m_tags.size();
   }
+
+  // Every enrolled wristband, ordered by uid. The simulator needs them to offer
+  // one band per team, and Phase 3's tag enrollment will show them too.
+  [[nodiscard]] auto Entries() const -> std::vector<Tag>;
 
  private:
   // Ordered, so nothing that walks the roster can depend on a hash.

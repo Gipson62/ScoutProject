@@ -203,6 +203,17 @@ auto CsvRoster::Load(const std::filesystem::path& path) -> Result<CsvRoster>
   return roster;
 }
 
+auto CsvRoster::Entries() const -> std::vector<Tag>
+{
+  std::vector<Tag> out;
+  out.reserve(m_tags.size());
+  for (const auto& [uid, tag] : m_tags)
+  {
+    out.push_back(tag);
+  }
+  return out;
+}
+
 auto CsvRoster::Lookup(std::string_view uid) const -> Tag
 {
   const auto found = m_tags.find(uid);

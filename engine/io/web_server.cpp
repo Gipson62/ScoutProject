@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <boost/asio/ip/tcp.hpp>
-#include "engine/io/beast.hpp"
 #include <boost/json.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +14,7 @@
 #include <vector>
 
 #include "engine/core/error.hpp"
+#include "engine/io/beast.hpp"
 
 namespace sg
 {
