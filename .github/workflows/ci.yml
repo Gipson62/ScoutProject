@@ -1,0 +1,69 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.preset }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: clang-debug
+            packages: clang-19 g++-14
+          - preset: gcc-debug
+            packages: g++-14
+    steps:
+      - uses: actions/checkout@v4
+
+      # g++-14 is installed for both presets: Clang uses libstdc++ 14 as its
+      # standard library, which the engine's minimum toolchain requires.
+      - name: Install toolchain and Boost
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ${{ matrix.packages }} ninja-build cmake \
+            libboost-dev libboost-json-dev libboost-system-dev
+
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.preset }}/_deps
+          key: deps-${{ matrix.preset }}-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
+
+  format:
+    name: clang-format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang-format-19
+
+      - name: Check formatting
+        run: |
+          files=$(git ls-files '*.hpp' '*.cpp')
+          if [ -z "$files" ]; then
+            echo "no C++ files to check"
+            exit 0
+          fi
+          clang-format-19 --dry-run --Werror $files
