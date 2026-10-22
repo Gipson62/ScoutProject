@@ -37,6 +37,12 @@ auto Describe(ErrorCode code) -> std::string_view
       return "the roster file cannot be opened";
     case ErrorCode::kRosterParseFailed:
       return "a line of the roster cannot be read";
+    case ErrorCode::kIoListenFailed:
+      return "the web server cannot listen on that port";
+    case ErrorCode::kIoWebRootMissing:
+      return "the web directory does not exist";
+    case ErrorCode::kIoBadFrame:
+      return "a WebSocket frame cannot be read";
   }
   return "unrecognised error code";
 }

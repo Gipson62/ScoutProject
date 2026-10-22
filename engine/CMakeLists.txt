@@ -16,6 +16,9 @@ add_library(
   core/random.cpp
   core/scheduler.cpp
   core/toolchain.cpp
+  io/output_sink.cpp
+  io/sim_transport.cpp
+  io/web_server.cpp
   log/event_log.cpp
   script/script_host.cpp)
 

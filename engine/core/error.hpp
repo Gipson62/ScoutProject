@@ -35,6 +35,11 @@ enum class ErrorCode : std::uint16_t
   kConfigBadValue = 303,
   kRosterOpenFailed = 310,
   kRosterParseFailed = 311,
+
+  // io: the web server and the transports
+  kIoListenFailed = 400,
+  kIoWebRootMissing = 401,
+  kIoBadFrame = 402,
 };
 
 struct Error
