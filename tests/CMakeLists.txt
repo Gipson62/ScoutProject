@@ -1,4 +1,5 @@
-add_executable(sg_tests core/core_test.cpp
+add_executable(sg_tests config/config_test.cpp
+                       core/core_test.cpp
                        core/error_test.cpp
                        core/event_test.cpp
                        core/game_state_test.cpp

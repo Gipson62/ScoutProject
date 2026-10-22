@@ -2,6 +2,8 @@
 # executable arrive with milestone M9.
 add_library(
   sg_engine STATIC
+  config/config.cpp
+  config/roster.cpp
   core/clock.cpp
   core/command_router.cpp
   core/core.cpp

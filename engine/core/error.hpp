@@ -27,6 +27,14 @@ enum class ErrorCode : std::uint16_t
   kLogOpenFailed = 200,
   kLogWriteFailed = 201,
   kLogCorruptLine = 202,
+
+  // config: the TOML config file and the roster CSV
+  kConfigOpenFailed = 300,
+  kConfigParseFailed = 301,
+  kConfigMissingField = 302,
+  kConfigBadValue = 303,
+  kRosterOpenFailed = 310,
+  kRosterParseFailed = 311,
 };
 
 struct Error
