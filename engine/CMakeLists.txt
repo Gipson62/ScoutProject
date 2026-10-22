@@ -2,10 +2,12 @@
 # executable arrive with milestone M9.
 add_library(
   sg_engine STATIC
+  core/clock.cpp
   core/error.cpp
   core/event.cpp
   core/json_impl.cpp
   core/panic.cpp
+  core/scheduler.cpp
   core/toolchain.cpp
   log/event_log.cpp)
 
