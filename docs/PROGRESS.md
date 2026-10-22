@@ -14,7 +14,7 @@ Design: `docs/DESIGN.md`, "Code architecture" section 1.
 | [x] | M1 `feat(core)` vocabulary: `Error`, `Result`, `Panic`, `SG_ASSERT`, `OptionalRef`, `Millis`, `Event`, `Command`, JSON both ways | `73c3a83`, `06a6603`, `6e98ec0` |
 | [x] | M2 `feat(log)` `EventLog`: append one JSON line per event, flush + fsync, sequence numbers, `Load` with per-line errors and a skipped truncated last line | `6473432` |
 | [x] | M3 `feat(core)` `Clock` and `Scheduler`: steady and fake clocks, `After`, `Every`, `Cancel`, order by (due, id) | `850375b` |
-| [ ] | M4 `feat(core)` `Core`: `OnInput`, `Tick`, `RunUntil`, `CommandRouter` with mute, `GameState`, `Rebuild`; live-feed and rebuild give identical state hashes | |
+| [x] | M4 `feat(core)` `Core`: `OnInput`, `Tick`, `RunUntil`, `CommandRouter` with mute, `GameState`, `Rebuild`; live-feed and rebuild give identical state hashes | `1d887c6`, `4e7b955` |
 | [ ] | M5 `feat(config)` `Config` (toml++) and roster CSV; errors name file and line | |
 | [ ] | M6 `feat(script)` `ScriptHost` on the pocketpy C API, `scoutgame` module, `modes/capture.py` | |
 | [ ] | M7 `feat(io)` `WebServer` (Beast) and `SimTransport` | |
@@ -70,10 +70,14 @@ Design: `docs/DESIGN.md`, "Code architecture" sections 3 and 4.
 | 2026-10-22 | A corrupt line anywhere but at the end fails the load; only an unterminated last line is skipped, with a warning | A line the parser cannot read is an event that happened and would silently vanish from the score. An unterminated last line is different: it was never acknowledged, so nothing downstream ever saw it |
 | 2026-10-22 | `Scheduler::PopDue` requeues a repeating timer **before** returning it, where the design's `run_until` pushes the repeat after firing | A hook that cancels its own repeating timer would otherwise see it come back, since the push happened after the cancel |
 | 2026-10-22 | A repeating timer that owes several firings fires all of them when time jumps | A replay must credit the same income as the live run; skipping to the last firing would pay less |
+| 2026-10-22 | A `Mode` interface sits between the Core and the rules, where the design has the Core call `ScriptHost` directly | The Core is testable against a stub mode in C++, before and independently of pocketpy, and the interpreter stays swappable in one place, which is what the design wanted `ScriptHost` for. M6's `ScriptHost` is another `Mode` |
+| 2026-10-22 | `Scheduler::Clear` restarts timer ids from 1 | A mode keeps its handles in `point.data`, so an id is part of the state; a rebuild that numbered timers differently reached a different state hash than the live run |
+| 2026-10-22 | The engine assigns `LedState::version`, not the mode | A node reports the version it is showing in its heartbeat, so a mismatch is what triggers a resend; a script cannot be trusted to count |
+| 2026-10-22 | `GameState::Hash` includes the random generator's position | Two states that agree on everything else but have drawn a different number of values diverge on the next roll, so they are not the same state |
 
 ## Next session
 
-Phase 1 continues at M4: `Core`, `CommandRouter`, `GameState` and `Rebuild`.
+Phase 1 continues at M5: `Config` from TOML and the roster CSV.
 
 Known issues and notes:
 
